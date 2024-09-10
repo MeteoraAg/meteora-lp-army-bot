@@ -18,7 +18,7 @@ env:
   GKE_ZONE: "asia-southeast1-b"
   GCLOUD_ARTIFACT_REGISTRY: "meteora-lp-army-tg-bot"
   GCLOUD_IMAGE_NAME: "meteora-lp-army-tg-bot"
-  DOCKER_FILE_PATH: "./Dockerfile"
+  DOCKER_FILE_PATH: "./meteora-lp-bot/Dockerfile"
 
 name: docker-build-and-push
 jobs:
@@ -75,7 +75,7 @@ jobs:
           tags: |
             ${{ env.GCLOUD_ZONE }}-docker.pkg.dev/${{ secrets.GCLOUD_PROJECT_ID }}/${{ env.GCLOUD_ARTIFACT_REGISTRY }}/${{ env.GCLOUD_IMAGE_NAME }}:${{ steps.extract_branch.outputs.branch }}-${{ steps.extract_commit_id.outputs.sha_short }}
             ${{ env.GCLOUD_ZONE }}-docker.pkg.dev/${{ secrets.GCLOUD_PROJECT_ID }}/${{ env.GCLOUD_ARTIFACT_REGISTRY }}/${{ env.GCLOUD_IMAGE_NAME }}:latest
-          context: .
+          context: ./meteora-lp-bot/
           file: ${{ env.DOCKER_FILE_PATH }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
