@@ -16,4 +16,5 @@ Create the .env file with the following data:
 ```bash
 BOT_TOKEN
 RPC_URL
+WEBAPP_URL
 ```

@@ -148,7 +148,7 @@ export async function initializeBot(): Promise<Telegraf<MyContext>> {
 
       if (message === "logout") {
         ctx.session.walletAddress = undefined;
-        const webAppUrl = "https://meteora-react-dynamic-wallet.vercel.app/";
+        const webAppUrl = process.env.WEBAPP_URL;
         await ctx.reply("✅ Logout", {
           reply_markup: {
             keyboard: [
