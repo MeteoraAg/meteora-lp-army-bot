@@ -86,7 +86,7 @@ jobs:
         # Assume we only deploy latest version
         run: |
           echo "Deploying meteora-lp-army-tg-bot to production with image ${{ env.GCLOUD_ZONE }}-docker.pkg.dev/${{ secrets.GCLOUD_PROJECT_ID }}/${{ env.GCLOUD_ARTIFACT_REGISTRY }}/${{ env.GCLOUD_IMAGE_NAME }}:${{ steps.extract_branch.outputs.branch }}-${{ steps.extract_commit_id.outputs.sha_short }}"
-          kubectl -n meteora-lp-army-tg-bot set image deployment/meteora-lp-army-tg-bot meteora-lp-army-tg-bott=${{ env.GCLOUD_ZONE }}-docker.pkg.dev/${{ secrets.GCLOUD_PROJECT_ID }}/${{ env.GCLOUD_ARTIFACT_REGISTRY }}/${{ env.GCLOUD_IMAGE_NAME }}:${{ steps.extract_branch.outputs.branch }}-${{ steps.extract_commit_id.outputs.sha_short }}
+          kubectl -n meteora-lp-army-tg-bot set image deployment/meteora-lp-army-tg-bot meteora-lp-army-tg-bot=${{ env.GCLOUD_ZONE }}-docker.pkg.dev/${{ secrets.GCLOUD_PROJECT_ID }}/${{ env.GCLOUD_ARTIFACT_REGISTRY }}/${{ env.GCLOUD_IMAGE_NAME }}:${{ steps.extract_branch.outputs.branch }}-${{ steps.extract_commit_id.outputs.sha_short }}
       - name: Move cache
         run: |
           rm -rf /tmp/.buildx-cache
