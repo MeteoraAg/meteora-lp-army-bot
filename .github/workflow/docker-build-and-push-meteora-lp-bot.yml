@@ -1,0 +1,93 @@
+permissions:
+  contents: read
+  id-token: "write"
+
+on:
+  push:
+    branches:
+      - main
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+env:
+  GCLOUD_WORKLOAD_IDENTITY: "github-action"
+  GCLOUD_WORKLOAD_IDENTITY_PROVIDER: "github-action-provider"
+  GCLOUD_SERVICE_ACCOUNT: "github-action-sa"
+  GCLOUD_ZONE: "asia-southeast1"
+  GKE_ZONE: "asia-southeast1-b"
+  GCLOUD_ARTIFACT_REGISTRY: "meteora-lp-army-tg-bot"
+  GCLOUD_IMAGE_NAME: "meteora-lp-army-tg-bot"
+  DOCKER_FILE_PATH: "./Dockerfile"
+
+name: docker-build-and-push
+jobs:
+  required:
+    runs-on: ubuntu-latest
+    name: Docker image build
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract branch name
+        shell: bash
+        id: extract_branch
+        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+      - name: Extract commit short SHA
+        id: extract_commit_id
+        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+      # Docker build
+      - name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          # Key is named differently to avoid collision
+          key: ${{ runner.os }}-multi-buildx-${{ steps.extract_branch.outputs.branch }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-multi-buildx-${{ steps.extract_branch.outputs.branch }}
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      # Auth with Gcloud
+      - id: auth
+        uses: "google-github-actions/auth@v2"
+        with:
+          token_format: access_token
+          project_id: ${{ secrets.GCLOUD_PROJECT_ID }}
+          workload_identity_provider: "projects/${{ secrets.GCLOUD_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/${{ env.GCLOUD_WORKLOAD_IDENTITY }}/providers/${{ env.GCLOUD_WORKLOAD_IDENTITY_PROVIDER}}"
+          service_account: ${{ env.GCLOUD_SERVICE_ACCOUNT }}@${{ secrets.GCLOUD_PROJECT_ID }}.iam.gserviceaccount.com
+          access_token_lifetime: 300s
+      - id: "get-gke-credentials"
+        uses: "google-github-actions/get-gke-credentials@v2"
+        with:
+          cluster_name: ${{ secrets.GKE_CLUSTER }}
+          location: ${{ env.GKE_ZONE }}
+          project_id: ${{ secrets.GCLOUD_PROJECT_ID }}
+      - name: Login to Artifact Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ env.GCLOUD_ZONE }}-docker.pkg.dev
+          username: oauth2accesstoken
+          password: ${{ steps.auth.outputs.access_token }}
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          tags: |
+            ${{ env.GCLOUD_ZONE }}-docker.pkg.dev/${{ secrets.GCLOUD_PROJECT_ID }}/${{ env.GCLOUD_ARTIFACT_REGISTRY }}/${{ env.GCLOUD_IMAGE_NAME }}:${{ steps.extract_branch.outputs.branch }}-${{ steps.extract_commit_id.outputs.sha_short }}
+            ${{ env.GCLOUD_ZONE }}-docker.pkg.dev/${{ secrets.GCLOUD_PROJECT_ID }}/${{ env.GCLOUD_ARTIFACT_REGISTRY }}/${{ env.GCLOUD_IMAGE_NAME }}:latest
+          context: .
+          file: ${{ env.DOCKER_FILE_PATH }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new
+        # Update deployment
+      - uses: "azure/setup-kubectl@v4"
+        id: kubectl-installer
+      - name: Update deployments
+        # Assume we only deploy latest version
+        run: |
+          echo "Deploying meteora-lp-army-tg-bot to production with image ${{ env.GCLOUD_ZONE }}-docker.pkg.dev/${{ secrets.GCLOUD_PROJECT_ID }}/${{ env.GCLOUD_ARTIFACT_REGISTRY }}/${{ env.GCLOUD_IMAGE_NAME }}:${{ steps.extract_branch.outputs.branch }}-${{ steps.extract_commit_id.outputs.sha_short }}"
+          kubectl -n meteora-lp-army-tg-bot set image deployment/meteora-lp-army-tg-bot meteora-lp-army-tg-bott=${{ env.GCLOUD_ZONE }}-docker.pkg.dev/${{ secrets.GCLOUD_PROJECT_ID }}/${{ env.GCLOUD_ARTIFACT_REGISTRY }}/${{ env.GCLOUD_IMAGE_NAME }}:${{ steps.extract_branch.outputs.branch }}-${{ steps.extract_commit_id.outputs.sha_short }}
+      - name: Move cache
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
