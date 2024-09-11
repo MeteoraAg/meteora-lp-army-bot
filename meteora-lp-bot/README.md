@@ -17,4 +17,5 @@ Create the .env file with the following data:
 BOT_TOKEN
 RPC_URL
 WEBAPP_URL
+BOT_NAME
 ```

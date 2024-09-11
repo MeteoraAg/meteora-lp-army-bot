@@ -4,6 +4,7 @@ import { calculateTokenPercentages, formatNumber } from "../utils/solana";
 import { Pair } from "../models/Pair";
 
 export function poolsInfoMessage(positions: Position[]) {
+  let botName = process.env.BOT_NAME;
   let poolInfoMessage = "";
 
   for (var position of positions) {
@@ -12,38 +13,36 @@ export function poolsInfoMessage(positions: Position[]) {
     const tokenPercentages = calculateTokenPercentages(position);
     const isOutRange =
       tokenPercentages.tokenX === 100 || tokenPercentages.tokenY === 100;
-    const urlPositionDetail = `https://t.me/meteora_lp_test_bot?start=position_${position.poolKey}`;
+    const urlPositionDetail = `https://t.me/${botName}?start=position_${position.poolKey}`;
 
     poolInfoMessage += `
-${
-  isOutRange ? "🔴" : "🟢"
-} <a href="${urlPositionDetail}"><b>${tokenXSymbol}-${tokenYSymbol}</b></a> - Current price (${position.totalCurrent.exchangeRate.toFixed(
-      8
-    )}) - <a href="https://app.meteora.ag/dlmm/${position.poolKey}">🪐</a>
+${isOutRange ? "🔴" : "🟢"
+      } <a href="${urlPositionDetail}"><b>${tokenXSymbol}-${tokenYSymbol}</b></a> - Current price (${position.totalCurrent.exchangeRate.toFixed(
+        8
+      )}) - <a href="https://app.meteora.ag/dlmm/${position.poolKey}">🪐</a>
 <code>${position.poolKey}</code>
 
 • <b>Range:</b> ${parseFloat(position.startBinPricePerToken).toFixed(
-      8
-    )} - ${parseFloat(position.lastBinPricePerToken).toFixed(8)} ${
-      isOutRange ? "⚠️ Out of range" : ""
-    }
+        8
+      )} - ${parseFloat(position.lastBinPricePerToken).toFixed(8)} ${isOutRange ? "⚠️ Out of range" : ""
+      }
 • <b>${tokenXSymbol}:</b> ${tokenPercentages.tokenX}%
 • <b>${tokenYSymbol}:</b> ${tokenPercentages.tokenY}%
 
 • <b>Liquidity:</b> $${position.totalCurrent.totalValueInTokenY.toFixed(2)}
 • <b>Fees Claimed:</b> $${position.totalUnclaimedFees.totalValueInTokenY.toFixed(
-      2
-    )}
+        2
+      )}
 • <b>Current Balance:</b> ${position.totalCurrent.tokenXBalance.toFixed(
-      4
-    )} ${tokenXSymbol} - ${position.totalCurrent.tokenYBalance.toFixed(
-      4
-    )} ${tokenYSymbol}
+        4
+      )} ${tokenXSymbol} - ${position.totalCurrent.tokenYBalance.toFixed(
+        4
+      )} ${tokenYSymbol}
 • <b>Unclaimed Swap Fee:</b> ${position.totalUnclaimedFees.tokenXBalance.toFixed(
-      6
-    )} ${tokenXSymbol} - ${position.totalUnclaimedFees.tokenYBalance.toFixed(
-      6
-    )} ${tokenYSymbol}
+        6
+      )} ${tokenXSymbol} - ${position.totalUnclaimedFees.tokenYBalance.toFixed(
+        6
+      )} ${tokenYSymbol}
     `;
   }
 
@@ -51,6 +50,7 @@ ${
 }
 
 export function poolsCompletePositionInfoMessage(position: Position) {
+  let botName = process.env.BOT_NAME;
   let poolInfoMessage = "";
 
   const tokenXSymbol = position.tokenX.symbol;
@@ -58,14 +58,13 @@ export function poolsCompletePositionInfoMessage(position: Position) {
   const tokenPercentages = calculateTokenPercentages(position);
   const isOutRange =
     tokenPercentages.tokenX === 100 || tokenPercentages.tokenY === 100;
-  const urlPositionDetail = `https://t.me/meteora_lp_test_bot?start=position_${position.poolKey}`;
+  const urlPositionDetail = `https://t.me/${botName}?start=position_${position.poolKey}`;
 
   poolInfoMessage += `
-  ${
-    isOutRange ? "🔴" : "🟢"
-  } <a href="${urlPositionDetail}"><b>${tokenXSymbol}-${tokenYSymbol}</b></a> - Current price (${position.totalCurrent.exchangeRate.toFixed(
-    8
-  )}) - <a href="https://app.meteora.ag/dlmm/${position.poolKey}">🪐</a>
+  ${isOutRange ? "🔴" : "🟢"
+    } <a href="${urlPositionDetail}"><b>${tokenXSymbol}-${tokenYSymbol}</b></a> - Current price (${position.totalCurrent.exchangeRate.toFixed(
+      8
+    )}) - <a href="https://app.meteora.ag/dlmm/${position.poolKey}">🪐</a>
   <code>${position.poolKey}</code>
   
   • <b>Bin Step:</b> ${position.pairInfo.binStep}
@@ -73,50 +72,49 @@ export function poolsCompletePositionInfoMessage(position: Position) {
   • <b>Max Fee:</b> ${position.pairInfo.maxFeePercentage}%
   
   • <b>Pool liquidity:</b> ${formatNumber(
-    parseFloat(position.pairInfo.liquidity)
-  )}
+      parseFloat(position.pairInfo.liquidity)
+    )}
   • <b>Daily Yield:</b> ${position.pairInfo.apr.toFixed(2)}%
   • <b>24h volume:</b> ${formatNumber(position.pairInfo.tradeVolume24h)}
   • <b>24h fees:</b> ${formatNumber(position.pairInfo.fees24h)}
 
   • <b>Range:</b> ${parseFloat(position.startBinPricePerToken).toFixed(
-    8
-  )} - ${parseFloat(position.lastBinPricePerToken).toFixed(8)} ${
-    isOutRange ? "⚠️ Out of range" : ""
-  }
+      8
+    )} - ${parseFloat(position.lastBinPricePerToken).toFixed(8)} ${isOutRange ? "⚠️ Out of range" : ""
+    }
   • <b>${tokenXSymbol}:</b> ${tokenPercentages.tokenX}%
   • <b>${tokenYSymbol}:</b> ${tokenPercentages.tokenY}%
   
   • <b>Liquidity:</b> $${position.totalCurrent.totalValueInTokenY.toFixed(2)}
   • <b>Fees Claimed:</b> $${position.totalUnclaimedFees.totalValueInTokenY.toFixed(
-    2
-  )}
+      2
+    )}
   • <b>Current Balance:</b> ${position.totalCurrent.tokenXBalance.toFixed(
-    4
-  )} ${tokenXSymbol} - ${position.totalCurrent.tokenYBalance.toFixed(
-    4
-  )} ${tokenYSymbol}
+      4
+    )} ${tokenXSymbol} - ${position.totalCurrent.tokenYBalance.toFixed(
+      4
+    )} ${tokenYSymbol}
   • <b>Unclaimed Swap Fee:</b> ${position.totalUnclaimedFees.tokenXBalance.toFixed(
-    6
-  )} ${tokenXSymbol} - ${position.totalUnclaimedFees.tokenYBalance.toFixed(
-    6
-  )} ${tokenYSymbol}
+      6
+    )} ${tokenXSymbol} - ${position.totalUnclaimedFees.tokenYBalance.toFixed(
+      6
+    )} ${tokenYSymbol}
       `;
 
   return poolInfoMessage;
 }
 
 export function poolsCompleteInfoMessage(pairInfo: PairInfo) {
+  let botName = process.env.BOT_NAME;
   let poolInfoMessage = "";
-  const urlPositionDetail = `https://t.me/meteora_lp_test_bot?start=pair_${pairInfo.address}`;
+  const urlPositionDetail = `https://t.me/${botName}?start=pair_${pairInfo.address}`;
 
   poolInfoMessage += `
 
-<a href="${urlPositionDetail}"><b>${
-    pairInfo.name
-  }</b></a> - Current price (${pairInfo.currentPrice.toFixed(
-    9
-  )}) - <a href="https://app.meteora.ag/dlmm/${pairInfo.address}">🪐</a>
+<a href="${urlPositionDetail}"><b>${pairInfo.name
+    }</b></a> - Current price (${pairInfo.currentPrice.toFixed(
+      9
+    )}) - <a href="https://app.meteora.ag/dlmm/${pairInfo.address}">🪐</a>
 <code>${pairInfo.address}</code>
 
 • <b>Bin Step:</b> ${pairInfo.binStep}
@@ -135,6 +133,7 @@ export function poolsCompleteInfoMessage(pairInfo: PairInfo) {
 }
 
 export function pairListMessage(pairResponse: PairResponse) {
+  let botName = process.env.BOT_NAME;
   let pairInfoMessage = "";
 
   for (var group of pairResponse.groups) {
@@ -159,8 +158,8 @@ export function pairListMessage(pairResponse: PairResponse) {
       return sum + (isNaN(fee) ? 0 : fee);
     }, 0);
     const numPools = group.pairs.length;
-    const urlPairListDetail = `https://t.me/meteora_lp_test_bot?start=pairListDetail_${pairName}`;
-    const urlPairDetail = `https://t.me/meteora_lp_test_bot?start=pair_`;
+    const urlPairListDetail = `https://t.me/${botName}?start=pairListDetail_${pairName}`;
+    const urlPairDetail = `https://t.me/${botName}?start=pair_`;
 
     if (!isOnlyOnePool) {
       pairInfoMessage += `
@@ -189,6 +188,7 @@ export function pairListMessage(pairResponse: PairResponse) {
 }
 
 export function pairListDetailMessage(pairs: Pair[]) {
+  let botName = process.env.BOT_NAME;
   let pairInfoMessage = "";
 
   for (var pair of pairs) {
@@ -198,15 +198,13 @@ export function pairListDetailMessage(pairs: Pair[]) {
     const totalTvl = parseFloat(pair.liquidity);
     const totalVolume24h = pair.tradeVolume24h;
     const totalFee24h = pair.fees24h;
-    const urlPairDetail = `https://t.me/meteora_lp_test_bot?start=pair_`;
+    const urlPairDetail = `https://t.me/${botName}?start=pair_`;
 
     pairInfoMessage += `
 
-<a href="${urlPairDetail}${
-      pair.address
-    }"><b>${pairName}</b></a> - <a href="https://app.meteora.ag/dlmm/${
-      pair.address
-    }">🪐</a>
+<a href="${urlPairDetail}${pair.address
+      }"><b>${pairName}</b></a> - <a href="https://app.meteora.ag/dlmm/${pair.address
+      }">🪐</a>
 <code>${pair.address}</code>
 
 • <b>Bin Step:</b> ${binStep}
